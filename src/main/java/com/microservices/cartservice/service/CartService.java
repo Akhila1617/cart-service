@@ -6,12 +6,17 @@ import com.microservices.cartservice.producer.CartEventProducer;
 import com.microservices.cartservice.repository.CartRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartService {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(CartService.class);
 
     private final CartRepository cartRepository;
     private final WebClient webClient;
@@ -46,10 +51,9 @@ public class CartService {
             throw new RuntimeException("Quantity must be greater than 0");
         }
 
-        System.out.println("====================================");
-        System.out.println("PRODUCT = " + product.getName());
-        System.out.println("STOCK VALIDATION SUCCESS");
-        System.out.println("====================================");
+        logger.info("Product fetched asynchronously: {}", product.getName());
+        logger.info("Stock validation completed successfully");
+
 
         Cart savedCart = cartRepository.save(cart);
 
@@ -58,6 +62,7 @@ public class CartService {
                 + ", \"quantity\": " + savedCart.getQuantity()
                 + " }";
 
+        logger.info("Cart event published to Kafka: {}", eventMessage);
         cartEventProducer.sendCartEvent(eventMessage);
 
         return savedCart;
