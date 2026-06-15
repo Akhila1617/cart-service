@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartService {
@@ -26,13 +27,29 @@ public class CartService {
 
     public Cart addCart(Cart cart) {
 
-        ProductResponse product = webClient.get()
-                .uri("/product/" + cart.getProductId())
-                .retrieve()
-                .bodyToMono(ProductResponse.class)
-                .block();
+        CompletableFuture<ProductResponse> productFuture =
+                CompletableFuture.supplyAsync(() ->
+                        webClient.get()
+                                .uri("/product/" + cart.getProductId())
+                                .retrieve()
+                                .bodyToMono(ProductResponse.class)
+                                .block()
+                );
 
-        System.out.println("Product fetched using WebClient: " + product.getName());
+        CompletableFuture<Boolean> stockFuture =
+                CompletableFuture.supplyAsync(() -> cart.getQuantity() > 0);
+
+        ProductResponse product = productFuture.join();
+        Boolean isStockValid = stockFuture.join();
+
+        if (!isStockValid) {
+            throw new RuntimeException("Quantity must be greater than 0");
+        }
+
+        System.out.println("====================================");
+        System.out.println("PRODUCT = " + product.getName());
+        System.out.println("STOCK VALIDATION SUCCESS");
+        System.out.println("====================================");
 
         Cart savedCart = cartRepository.save(cart);
 
