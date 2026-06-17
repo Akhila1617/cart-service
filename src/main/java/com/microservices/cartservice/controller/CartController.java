@@ -5,9 +5,11 @@ import com.microservices.cartservice.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/cart")
+@CrossOrigin(origins = "http://localhost:5173")
 public class CartController {
 
     private final CartService cartService;
