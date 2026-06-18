@@ -1,4 +1,4 @@
-package com.microservices.cartservice.model;
+package com.microservices.cartservice.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +14,5 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long productId;
-
-    private Integer quantity;
+    private Long userId;
 }

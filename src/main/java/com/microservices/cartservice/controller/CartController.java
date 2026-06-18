@@ -1,6 +1,6 @@
 package com.microservices.cartservice.controller;
 
-import com.microservices.cartservice.model.Cart;
+import com.microservices.cartservice.entity.Cart;
 import com.microservices.cartservice.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
