@@ -1,5 +1,6 @@
 package com.microservices.cartservice.controller;
 
+import jakarta.validation.Valid;
 import com.microservices.cartservice.entity.Cart;
 import com.microservices.cartservice.entity.CartItem;
 import com.microservices.cartservice.service.CartService;
@@ -28,13 +29,13 @@ public class CartController {
         return cartService.getAllCarts();
     }
 
-    @PostMapping("/items")
-    public CartItem addCartItem(@RequestBody CartItem cartItem) {
-        return cartService.addCartItem(cartItem);
-    }
-
     @GetMapping("/items")
     public List<CartItem> getAllCartItems() {
         return cartService.getAllCartItems();
+    }
+
+    @PostMapping("/items")
+    public CartItem addCartItem(@Valid @RequestBody CartItem cartItem) {
+        return cartService.addCartItem(cartItem);
     }
 }

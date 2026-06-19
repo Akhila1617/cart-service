@@ -1,5 +1,7 @@
 package com.microservices.cartservice.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.microservices.cartservice.dto.ProductResponse;
 import com.microservices.cartservice.entity.Cart;
 import com.microservices.cartservice.entity.CartItem;
@@ -15,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartService {
-
+    private static final Logger logger = LoggerFactory.getLogger(CartService.class);
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CartEventProducer cartEventProducer;
@@ -44,7 +46,7 @@ public class CartService {
     }
 
     public CartItem addCartItem(CartItem cartItem) {
-
+        logger.info("Adding product to cart. Product id: {}, Quantity: {}", cartItem.getProductId(), cartItem.getQuantity());
         CompletableFuture<ProductResponse> fetchProductFuture =
                 CompletableFuture.supplyAsync(() -> webClient.get()
                         .uri("/product/" + cartItem.getProductId())
@@ -69,6 +71,7 @@ public class CartService {
         }
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
+        logger.info("Cart item saved successfully. Cart item id: {}", savedCartItem.getId());
 
         String eventMessage = "{"
                 + "\"cartId\": " + savedCartItem.getCartId()
