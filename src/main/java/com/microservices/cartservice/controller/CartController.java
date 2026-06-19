@@ -1,11 +1,11 @@
 package com.microservices.cartservice.controller;
 
 import com.microservices.cartservice.entity.Cart;
+import com.microservices.cartservice.entity.CartItem;
 import com.microservices.cartservice.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/cart")
@@ -26,5 +26,15 @@ public class CartController {
     @GetMapping
     public List<Cart> getAllCarts() {
         return cartService.getAllCarts();
+    }
+
+    @PostMapping("/items")
+    public CartItem addCartItem(@RequestBody CartItem cartItem) {
+        return cartService.addCartItem(cartItem);
+    }
+
+    @GetMapping("/items")
+    public List<CartItem> getAllCartItems() {
+        return cartService.getAllCartItems();
     }
 }
