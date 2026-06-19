@@ -38,10 +38,12 @@ public class CartService {
     }
 
     public Cart addCart(Cart cart) {
+
         return cartRepository.save(cart);
     }
 
     public List<Cart> getAllCarts() {
+
         return cartRepository.findAll();
     }
 
