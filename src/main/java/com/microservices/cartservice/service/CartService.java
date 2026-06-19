@@ -3,6 +3,7 @@ package com.microservices.cartservice.service;
 import com.microservices.cartservice.dto.ProductResponse;
 import com.microservices.cartservice.entity.Cart;
 import com.microservices.cartservice.entity.CartItem;
+import com.microservices.cartservice.producer.CartEventProducer;
 import com.microservices.cartservice.repository.CartItemRepository;
 import com.microservices.cartservice.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,15 +17,18 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final CartEventProducer cartEventProducer;
     private final WebClient webClient;
 
     public CartService(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
+            CartEventProducer cartEventProducer,
             @Value("${product.service.url}") String productServiceUrl
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.cartEventProducer = cartEventProducer;
         this.webClient = WebClient.builder()
                 .baseUrl(productServiceUrl)
                 .build();
@@ -54,7 +58,17 @@ public class CartService {
             throw new RuntimeException("Stock is not sufficient");
         }
 
-        return cartItemRepository.save(cartItem);
+        CartItem savedCartItem = cartItemRepository.save(cartItem);
+
+        String eventMessage = "{"
+                + "\"cartId\": " + savedCartItem.getCartId()
+                + ", \"productId\": " + savedCartItem.getProductId()
+                + ", \"quantity\": " + savedCartItem.getQuantity()
+                + "}";
+
+        cartEventProducer.sendCartEvent(eventMessage);
+
+        return savedCartItem;
     }
 
     public List<CartItem> getAllCartItems() {
