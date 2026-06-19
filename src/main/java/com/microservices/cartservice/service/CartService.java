@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartService {
@@ -44,17 +45,26 @@ public class CartService {
 
     public CartItem addCartItem(CartItem cartItem) {
 
-        ProductResponse product = webClient.get()
-                .uri("/product/" + cartItem.getProductId())
-                .retrieve()
-                .bodyToMono(ProductResponse.class)
-                .block();
+        CompletableFuture<ProductResponse> fetchProductFuture =
+                CompletableFuture.supplyAsync(() -> webClient.get()
+                        .uri("/product/" + cartItem.getProductId())
+                        .retrieve()
+                        .bodyToMono(ProductResponse.class)
+                        .block());
 
-        if (product == null || product.getId() == null) {
-            throw new RuntimeException("Product not found");
-        }
+        CompletableFuture<Boolean> validateStockFuture =
+                fetchProductFuture.thenApply(product -> {
+                    if (product == null || product.getId() == null) {
+                        throw new RuntimeException("Product not found");
+                    }
 
-        if (product.getStock() == null || product.getStock() < cartItem.getQuantity()) {
+                    return product.getStock() != null
+                            && product.getStock() >= cartItem.getQuantity();
+                });
+
+        Boolean isStockAvailable = validateStockFuture.join();
+
+        if (!isStockAvailable) {
             throw new RuntimeException("Stock is not sufficient");
         }
 
